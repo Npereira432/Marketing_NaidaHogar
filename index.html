@@ -1,0 +1,992 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestor de Contenido de Marketing</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <style>
+    :root {
+      --primary: #4a6cf7;
+      --primary-hover: #3254d9;
+      --secondary: #833AB4;
+      --light: #f8f9fa;
+      --dark: #333;
+      --border: #e1e4e8;
+      --success: #28a745;
+      --danger: #dc3545;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: var(--light);
+      color: var(--dark);
+      line-height: 1.6;
+      padding: 20px;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    
+    h1 {
+      color: var(--primary);
+      margin-bottom: 20px;
+    }
+    
+    .status-bar {
+      background-color: #fff;
+      padding: 10px;
+      border-radius: 5px;
+      margin-bottom: 15px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    
+    .card {
+      background-color: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    
+    .card h2 {
+      margin-bottom: 15px;
+      color: var(--primary);
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 10px;
+    }
+    
+    .flex-row {
+      display: flex;
+      gap: 20px;
+    }
+    
+    .flex-col {
+      flex: 1;
+    }
+    
+    .form-group {
+      margin-bottom: 15px;
+    }
+    
+    .form-group label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    
+    .form-control {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+    }
+    
+    .btn {
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: background-color 0.3s;
+    }
+    
+    .btn:hover {
+      background-color: var(--primary-hover);
+    }
+    
+    .btn-success {
+      background-color: var(--success);
+    }
+    
+    .btn-success:hover {
+      background-color: #218838;
+    }
+    
+    .btn-danger {
+      background-color: var(--danger);
+    }
+    
+    .btn-danger:hover {
+      background-color: #c82333;
+    }
+    
+    .btn-group {
+      display: flex;
+      gap: 10px;
+    }
+    
+    .file-input {
+      display: none;
+    }
+    
+    .file-label {
+      display: inline-block;
+      background-color: var(--primary);
+      color: white;
+      padding: 10px 15px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    
+    .file-label:hover {
+      background-color: var(--primary-hover);
+    }
+    
+    .counter-section {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 15px;
+      background-color: #f1f5f9;
+      padding: 15px;
+      border-radius: 8px;
+    }
+    
+    .counter-block {
+      flex: 1;
+      text-align: center;
+      padding: 10px;
+    }
+    
+    .counter-block:not(:last-child) {
+      border-right: 1px solid var(--border);
+    }
+    
+    .counter-block h3 {
+      margin-bottom: 10px;
+      font-size: 16px;
+    }
+    
+    .counter-value {
+      font-size: 24px;
+      font-weight: bold;
+      color: var(--primary);
+    }
+    
+    .content-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 20px;
+    }
+    
+    .day-card {
+      background-color: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      overflow: hidden;
+    }
+    
+    .day-header {
+      background-color: var(--primary);
+      color: white;
+      padding: 10px 15px;
+      font-weight: bold;
+      display: flex;
+      justify-content: space-between;
+    }
+    
+    .weekend {
+      background-color: var(--secondary);
+    }
+    
+    .day-content {
+      padding: 15px;
+    }
+    
+    .content-item {
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+    }
+    
+    .content-item:last-child {
+      border-bottom: none;
+    }
+    
+    .content-checkbox {
+      margin-right: 10px;
+    }
+    
+    .content-type {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 12px;
+      font-size: 12px;
+      margin-right: 8px;
+    }
+    
+    .type-story {
+      background-color: #e3f2fd;
+      color: #0d47a1;
+    }
+    
+    .type-carousel {
+      background-color: #e8f5e9;
+      color: #1b5e20;
+    }
+    
+    .type-video {
+      background-color: #fff3e0;
+      color: #e65100;
+    }
+    
+    .type-boxin {
+      background-color: #f3e5f5;
+      color: #6a1b9a;
+    }
+    
+    .notification {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background-color: var(--success);
+      color: white;
+      padding: 10px 15px;
+      border-radius: 4px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      display: none;
+      z-index: 1000;
+    }
+    
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      display: none;
+    }
+    
+    .modal {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      width: 400px;
+      max-width: 90%;
+    }
+    
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+    
+    .modal-header h3 {
+      margin: 0;
+    }
+    
+    .modal-close {
+      cursor: pointer;
+      font-size: 22px;
+      font-weight: bold;
+    }
+    
+    .modal-body {
+      margin-bottom: 15px;
+    }
+    
+    .modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+    
+    @media (max-width: 768px) {
+      .flex-row {
+        flex-direction: column;
+      }
+      .content-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Gestor de Contenido de Marketing</h1>
+    
+    <div class="status-bar" id="status-bar">
+      Carga un archivo Excel y configura la fecha inicial para comenzar
+    </div>
+    
+    <div class="flex-row">
+      <div class="flex-col">
+        <div class="card">
+          <h2>Configuración</h2>
+          <div class="form-group">
+            <label for="start-date">Fecha inicial (Día uno):</label>
+            <input type="date" id="start-date" class="form-control">
+          </div>
+          <div class="form-group">
+            <label for="file-input" class="file-label">Cargar Excel de Productos</label>
+            <input type="file" id="file-input" class="file-input" accept=".xlsx, .xls">
+            <div id="file-name">Ningún archivo seleccionado</div>
+          </div>
+          <div class="btn-group">
+            <button id="generate-btn" class="btn btn-success">Generar Grilla de Contenido</button>
+            <button id="save-btn" class="btn">Guardar Cambios</button>
+            <button id="export-btn" class="btn" style="background-color: #17a2b8;">Exportar a Excel</button>
+            <button id="clear-data-btn" class="btn btn-danger">Borrar Datos</button>
+          </div>
+        </div>
+      </div>
+      
+      <div class="flex-col">
+        <div class="card">
+          <h2>Estadísticas de Contenido</h2>
+          <div class="counter-section">
+            <div class="counter-block">
+              <h3>Historias</h3>
+              <div class="counter-value">
+                <span id="stories-marked">0</span>/<span id="stories-total">0</span>
+              </div>
+            </div>
+            <div class="counter-block">
+              <h3>Carruseles</h3>
+              <div class="counter-value">
+                <span id="carousels-marked">0</span>/<span id="carousels-total">0</span>
+              </div>
+            </div>
+            <div class="counter-block">
+              <h3>Videos</h3>
+              <div class="counter-value">
+                <span id="videos-marked">0</span>/<span id="videos-total">0</span>
+              </div>
+            </div>
+            <div class="counter-block">
+              <h3>Boxin</h3>
+              <div class="counter-value">
+                <span id="boxins-marked">0</span>/<span id="boxins-total">0</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="card">
+      <h2>Planificación de Contenido</h2>
+      <div id="content-grid" class="content-grid">
+        <!-- El contenido se generará dinámicamente aquí -->
+      </div>
+    </div>
+  </div>
+  
+  <div id="notification" class="notification"></div>
+  
+  <!-- Modal de confirmación -->
+  <div id="confirm-modal" class="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Confirmar acción</h3>
+        <span class="modal-close" id="modal-close">&times;</span>
+      </div>
+      <div class="modal-body">
+        <p>¿Estás seguro de que deseas generar una nueva grilla? Esto reemplazará la grilla actual y perderás los datos marcados.</p>
+      </div>
+      <div class="modal-footer">
+        <button id="modal-cancel" class="btn">Cancelar</button>
+        <button id="modal-confirm" class="btn btn-danger">Confirmar</button>
+      </div>
+    </div>
+  </div>
+  <script>
+    // Variables globales
+    let productList = []; // Productos cargados desde Excel
+    let contentData = []; // Datos generados dinámicamente
+    let startDate; // Fecha del día uno
+    let productsLoaded = false; // Indicador de que los productos se han cargado
+    
+    // Referencias a elementos del DOM
+    const fileInput = document.getElementById("file-input");
+    const fileName = document.getElementById("file-name");
+    const startDateInput = document.getElementById("start-date");
+    const generateBtn = document.getElementById("generate-btn");
+    const saveBtn = document.getElementById("save-btn");
+    const exportBtn = document.getElementById("export-btn");
+    const clearDataBtn = document.getElementById("clear-data-btn");
+    const contentGrid = document.getElementById("content-grid");
+    const statusBar = document.getElementById("status-bar");
+    const notification = document.getElementById("notification");
+    const confirmModal = document.getElementById("confirm-modal");
+    const modalClose = document.getElementById("modal-close");
+    const modalCancel = document.getElementById("modal-cancel");
+    const modalConfirm = document.getElementById("modal-confirm");
+    
+    // Mostrar notificación
+    function showNotification(message) {
+      notification.textContent = message;
+      notification.style.display = "block";
+      
+      setTimeout(() => {
+        notification.style.display = "none";
+      }, 3000);
+    }
+    
+    // Actualizar barra de estado
+    function updateStatusBar(message) {
+      statusBar.textContent = message;
+    }
+    
+    // Función para cargar datos desde localStorage
+    function loadFromLocalStorage() {
+      try {
+        // Cargar datos de la grilla
+        const savedData = localStorage.getItem('marketingGridData');
+        if (savedData) {
+          contentData = JSON.parse(savedData);
+          
+          // Cargar fecha de inicio
+          const savedDate = localStorage.getItem('marketingGridDate');
+          if (savedDate) {
+            startDate = new Date(savedDate);
+            startDateInput.value = startDate.toISOString().slice(0, 10);
+          }
+          
+          // Cargar productos
+          const savedProducts = localStorage.getItem('marketingProducts');
+          if (savedProducts) {
+            productList = JSON.parse(savedProducts);
+            productsLoaded = true;
+          }
+          
+          // Renderizar la grilla y actualizar contadores
+          renderContentGrid();
+          updateCounters();
+          
+          updateStatusBar("Datos cargados desde el almacenamiento local.");
+          return true;
+        }
+        return false;
+      } catch (e) {
+        console.error("Error al cargar desde localStorage:", e);
+        return false;
+      }
+    }
+    
+    // Evento cambio de archivo
+    fileInput.addEventListener("change", function(e) {
+      const file = e.target.files[0];
+      if (file) {
+        fileName.textContent = file.name;
+        
+        const reader = new FileReader();
+        reader.onload = function(event) {
+          try {
+            const data = new Uint8Array(event.target.result);
+            const workbook = XLSX.read(data, { type: "array" });
+            const sheet = workbook.Sheets[workbook.SheetNames[0]];
+            productList = XLSX.utils.sheet_to_json(sheet);
+            
+            // Guardar productos en localStorage
+            localStorage.setItem('marketingProducts', JSON.stringify(productList));
+            
+            // Inicializar frecuencia de uso para cada producto
+            productList.forEach(product => product.frecuencia = 0);
+            
+            productsLoaded = true;
+            showNotification(`Archivo cargado: ${productList.length} productos`);
+            updateStatusBar(`Archivo cargado con ${productList.length} productos. Ahora selecciona una fecha de inicio.`);
+            
+            // Para debugging
+            console.log("Productos cargados:", productList);
+          } catch (err) {
+            console.error("Error al procesar el archivo:", err);
+            showNotification("Error al procesar el archivo");
+          }
+        };
+        reader.readAsArrayBuffer(file);
+      }
+    });
+    
+    // Actualizar la fecha almacenada cuando se cambia el input
+    startDateInput.addEventListener('change', function(e) {
+      if (e.target.value) {
+        startDate = new Date(e.target.value);
+        // Guardar la fecha en localStorage
+        localStorage.setItem('marketingGridDate', startDate.toISOString());
+        
+        if (contentData.length > 0) {
+          showNotification("Fecha actualizada. La grilla se actualizará al regenerar.");
+        } else {
+          updateStatusBar("Fecha seleccionada. Ahora genera la grilla de contenido.");
+        }
+      }
+    });
+    
+    // Función para mostrar el modal de confirmación
+    function showConfirmModal(action) {
+      confirmModal.style.display = "flex";
+      
+      // Aquí guardamos la acción pendiente directamente en los listeners
+      // en lugar de usar una variable global
+      modalConfirm.onclick = function() {
+        hideConfirmModal();
+        if (action && typeof action === 'function') {
+          action();
+        }
+      };
+    }
+    
+    // Función para ocultar el modal
+    function hideConfirmModal() {
+      confirmModal.style.display = "none";
+    }
+    
+    // Evento generar grilla con confirmación
+    generateBtn.addEventListener("click", function() {
+      if (contentData.length > 0) {
+        showConfirmModal(generateGrid);
+      } else {
+        generateGrid();
+      }
+    });
+    
+    // Evento guardar cambios
+    saveBtn.addEventListener("click", function() {
+      if (saveToLocalStorage()) {
+        showNotification("Cambios guardados exitosamente");
+      }
+    });
+    
+    // Evento exportar a Excel
+    exportBtn.addEventListener("click", exportToExcel);
+    
+    // Eventos del modal
+    modalClose.addEventListener("click", hideConfirmModal);
+    modalCancel.addEventListener("click", hideConfirmModal);
+    
+    // Evento borrar datos
+    clearDataBtn.addEventListener("click", function() {
+      if (contentData.length > 0) {
+        showConfirmModal(clearAllData);
+      } else {
+        showNotification("No hay datos para borrar");
+      }
+    });
+    
+    // Función para borrar todos los datos
+    function clearAllData() {
+      contentData = [];
+      startDate = null;
+      startDateInput.value = "";
+      renderContentGrid();
+      updateCounters();
+      
+      // Limpiar localStorage pero mantener productos
+      localStorage.removeItem('marketingGridData');
+      localStorage.removeItem('marketingGridDate');
+      
+      showNotification("Datos borrados exitosamente");
+      updateStatusBar("Datos borrados. Carga un archivo Excel y configura la fecha inicial para comenzar.");
+    }
+    
+    // Función para generar la grilla
+    function generateGrid() {
+      const startDateValue = startDateInput.value;
+      
+      if (!startDateValue) {
+        showNotification("Por favor, selecciona una fecha inicial");
+        return;
+      }
+      
+      // Si no hay productos cargados, intentar cargar desde localStorage
+      if (!productsLoaded || productList.length === 0) {
+        const savedProducts = localStorage.getItem('marketingProducts');
+        if (savedProducts) {
+          try {
+            productList = JSON.parse(savedProducts);
+            // Resetear frecuencias
+            productList.forEach(product => product.frecuencia = 0);
+            productsLoaded = true;
+            console.log("Productos cargados desde localStorage:", productList.length);
+          } catch (e) {
+            console.error("Error al parsear productos desde localStorage:", e);
+            showNotification("Error al cargar productos guardados");
+            return;
+          }
+        } else {
+          showNotification("Por favor, carga un archivo Excel primero");
+          return;
+        }
+      }
+      
+      // Verificar que los productos tengan la propiedad necesaria
+      if (productList.length > 0 && !productList[0]["Producto/Nombre"]) {
+        // Intentar encontrar la propiedad correcta
+        const firstProduct = productList[0];
+        const possiblePropertyNames = Object.keys(firstProduct);
+        if (possiblePropertyNames.length > 0) {
+          // Usar la primera propiedad como el nombre del producto
+          productList.forEach(product => {
+            product["Producto/Nombre"] = product[possiblePropertyNames[0]];
+          });
+          console.log("Usando propiedad alternativa para nombres de productos:", possiblePropertyNames[0]);
+        } else {
+          showNotification("El formato del Excel no es correcto. Debe tener una columna 'Producto/Nombre'");
+          return;
+        }
+      }
+      
+      startDate = new Date(startDateValue);
+      contentData = []; // Limpiar datos anteriores
+      
+      // Generar datos para 30 días
+      for (let day = 0; day < 30; day++) {
+        const currentDate = new Date(startDate);
+        currentDate.setDate(startDate.getDate() + day);
+        
+        const isWeekend = currentDate.getDay() === 0 || currentDate.getDay() === 6;
+        const dayOfWeek = currentDate.getDay(); // 0 = domingo, 1 = lunes, ..., 6 = sábado
+        
+        const dayContent = {
+          id: day + 1,
+          fecha: currentDate.toISOString().slice(0, 10),
+          diaSemana: currentDate.toLocaleDateString('es-ES', { weekday: 'short' }),
+          historias: [],
+          carruseles: [],
+          videos: [],
+          boxins: [],
+          isWeekend: isWeekend
+        };
+        
+        // Función para obtener producto menos usado
+        function getLessUsedProduct() {
+          if (productList.length === 0) {
+            return { "Producto/Nombre": "Producto ejemplo" };
+          }
+          
+          const sorted = [...productList].sort((a, b) => a.frecuencia - b.frecuencia);
+          const producto = sorted[0]; // El menos usado
+          producto.frecuencia++; // Incrementar su uso
+          return producto;
+        }
+        
+        // 10 historias diarias con 1 producto cada una
+        for (let i = 0; i < 10; i++) {
+          const producto = getLessUsedProduct();
+          dayContent.historias.push({
+            producto: producto["Producto/Nombre"],
+            descripcion: `Historia sobre ${producto["Producto/Nombre"]}`,
+            completado: false,
+            tipo: "story"
+          });
+        }
+        
+        // Asignar productos a carruseles
+        const carruselesCount = isWeekend ? 1 : 2;
+        for (let i = 0; i < carruselesCount; i++) {
+          const producto = getLessUsedProduct();
+          dayContent.carruseles.push({
+            producto: producto["Producto/Nombre"],
+            descripcion: `Carrusel sobre ${producto["Producto/Nombre"]}`,
+            completado: false,
+            tipo: "carousel"
+          });
+        }
+        
+        // 3 videos a la semana (lunes, miércoles y viernes)
+        if (dayOfWeek === 1 || dayOfWeek === 3 || dayOfWeek === 5) {
+          const producto = getLessUsedProduct();
+          dayContent.videos.push({
+            producto: producto["Producto/Nombre"],
+            descripcion: `Video sobre ${producto["Producto/Nombre"]}`,
+            completado: false,
+            tipo: "video"
+          });
+        }
+        
+        // 1 Boxin semanal (cada lunes)
+        if (dayOfWeek === 1) {
+          const producto = getLessUsedProduct();
+          dayContent.boxins.push({
+            producto: producto["Producto/Nombre"],
+            descripcion: `Boxin sobre ${producto["Producto/Nombre"]}`,
+            completado: false,
+            tipo: "boxin"
+          });
+        }
+        
+        contentData.push(dayContent);
+      }
+      
+      // Renderizar la grilla y actualizar contadores
+      renderContentGrid();
+      updateCounters();
+      saveToLocalStorage();
+      
+      showNotification("Grilla generada exitosamente");
+      updateStatusBar("Grilla generada. Marca las casillas para llevar un seguimiento del contenido.");
+      
+      // Para debugging
+      console.log("Contenido generado:", contentData);
+    }
+    
+    // Renderizar la grilla de contenido
+    function renderContentGrid() {
+      contentGrid.innerHTML = '';
+      
+      if (contentData.length === 0) {
+        const emptyMessage = document.createElement('div');
+        emptyMessage.textContent = 'No hay datos para mostrar. Genera una grilla de contenido primero.';
+        emptyMessage.style.textAlign = 'center';
+        emptyMessage.style.padding = '20px';
+        emptyMessage.style.gridColumn = '1 / -1';
+        contentGrid.appendChild(emptyMessage);
+        return;
+      }
+      
+      contentData.forEach(day => {
+        const dayCard = document.createElement('div');
+        dayCard.className = 'day-card';
+        
+        // Formatear fecha
+        const dateObj = new Date(day.fecha);
+        const formattedDate = dateObj.toLocaleDateString('es-ES', {
+          day: 'numeric',
+          month: 'short'
+        });
+        
+        // Crear encabezado del día
+        const dayHeader = document.createElement('div');
+        dayHeader.className = `day-header ${day.isWeekend ? 'weekend' : ''}`;
+        dayHeader.innerHTML = `
+          <span>${day.diaSemana} ${formattedDate}</span>
+          <span>Día ${day.id}</span>
+        `;
+        
+        // Crear contenido del día
+        const dayContent = document.createElement('div');
+        dayContent.className = 'day-content';
+        
+        // Añadir historias
+        day.historias.forEach((item, index) => {
+          const contentItem = createContentItem(item, day.id, 'historias', index);
+          dayContent.appendChild(contentItem);
+        });
+        
+        // Añadir carruseles
+        day.carruseles.forEach((item, index) => {
+          const contentItem = createContentItem(item, day.id, 'carruseles', index);
+          dayContent.appendChild(contentItem);
+        });
+        
+        // Añadir videos
+        day.videos.forEach((item, index) => {
+          const contentItem = createContentItem(item, day.id, 'videos', index);
+          dayContent.appendChild(contentItem);
+        });
+        
+        // Añadir boxins
+        day.boxins.forEach((item, index) => {
+          const contentItem = createContentItem(item, day.id, 'boxins', index);
+          dayContent.appendChild(contentItem);
+        });
+        
+        // Combinar todo
+        dayCard.appendChild(dayHeader);
+        dayCard.appendChild(dayContent);
+        contentGrid.appendChild(dayCard);
+      });
+    }
+    
+    // Crear item de contenido con checkbox
+    function createContentItem(item, dayId, category, index) {
+      const div = document.createElement('div');
+      div.className = 'content-item';
+      
+      const checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      checkbox.className = 'content-checkbox';
+      checkbox.checked = item.completado;
+      checkbox.setAttribute('data-day', dayId);
+      checkbox.setAttribute('data-type', item.tipo);
+      checkbox.setAttribute('data-category', category);
+      checkbox.setAttribute('data-index', index);
+      
+      // Evento para marcar/desmarcar
+      checkbox.addEventListener('change', function() {
+        // Actualizar el estado del ítem en contentData
+        const day = contentData.find(d => d.id === parseInt(this.getAttribute('data-day')));
+        if (day) {
+          const categoryName = this.getAttribute('data-category');
+          const itemIndex = parseInt(this.getAttribute('data-index'));
+          if (day[categoryName] && day[categoryName][itemIndex]) {
+            day[categoryName][itemIndex].completado = this.checked;
+          }
+        }
+        
+        updateCounters();
+        saveToLocalStorage();
+      });
+      
+      const typeSpan = document.createElement('span');
+      typeSpan.className = `content-type type-${item.tipo}`;
+      typeSpan.textContent = item.tipo === 'story' ? 'Historia' : 
+                             item.tipo === 'carousel' ? 'Carrusel' : 
+                             item.tipo === 'video' ? 'Video' : 'Boxin';
+      
+      div.appendChild(checkbox);
+      div.appendChild(typeSpan);
+      div.appendChild(document.createTextNode(item.descripcion));
+      
+      return div;
+    }
+    
+    // Actualizar contadores
+    function updateCounters() {
+      let totalStories = 0;
+      let markedStories = 0;
+      let totalCarousels = 0;
+      let markedCarousels = 0;
+      let totalVideos = 0;
+      let markedVideos = 0;
+      let totalBoxins = 0;
+      let markedBoxins = 0;
+      
+      contentData.forEach(day => {
+        // Contar historias
+        totalStories += day.historias.length;
+        markedStories += day.historias.filter(h => h.completado).length;
+        
+        // Contar carruseles
+        totalCarousels += day.carruseles.length;
+        markedCarousels += day.carruseles.filter(c => c.completado).length;
+        
+        // Contar videos
+        totalVideos += day.videos.length;
+        markedVideos += day.videos.filter(v => v.completado).length;
+        
+        // Contar boxins
+        totalBoxins += day.boxins.length;
+        markedBoxins += day.boxins.filter(b => b.completado).length;
+      });
+      
+      // Actualizar en el DOM
+      document.getElementById('stories-total').textContent = totalStories;
+      document.getElementById('stories-marked').textContent = markedStories;
+      document.getElementById('carousels-total').textContent = totalCarousels;
+      document.getElementById('carousels-marked').textContent = markedCarousels;
+      document.getElementById('videos-total').textContent = totalVideos;
+      document.getElementById('videos-marked').textContent = markedVideos;
+      document.getElementById('boxins-total').textContent = totalBoxins;
+      document.getElementById('boxins-marked').textContent = markedBoxins;
+    }
+    
+    // Guardar datos en localStorage
+    function saveToLocalStorage() {
+      try {
+        localStorage.setItem('marketingGridData', JSON.stringify(contentData));
+        if (startDate) {
+          localStorage.setItem('marketingGridDate', startDate.toISOString());
+        }
+        return true;
+      } catch (e) {
+        console.error("Error al guardar en localStorage:", e);
+        showNotification("Error al guardar los datos localmente");
+        return false;
+      }
+    }
+    
+    // Exportar a Excel
+    function exportToExcel() {
+      if (contentData.length === 0) {
+        showNotification("No hay datos para exportar");
+        return;
+      }
+      
+      try {
+        // Preparar datos para exportar
+        const exportData = [];
+        
+        // Encabezados
+        exportData.push([
+          "Día", "Fecha", "Día de semana", "Tipo de contenido", 
+          "Producto", "Descripción", "Completado"
+        ]);
+        
+        // Datos
+        contentData.forEach(day => {
+          // Historias
+          day.historias.forEach(item => {
+            exportData.push([
+              day.id, day.fecha, day.diaSemana, "Historia",
+              item.producto, item.descripcion, item.completado ? "Sí" : "No"
+            ]);
+          });
+          
+          // Carruseles
+          day.carruseles.forEach(item => {
+            exportData.push([
+              day.id, day.fecha, day.diaSemana, "Carrusel",
+              item.producto, item.descripcion, item.completado ? "Sí" : "No"
+            ]);
+          });
+          
+          // Videos
+          day.videos.forEach(item => {
+            exportData.push([
+              day.id, day.fecha, day.diaSemana, "Video",
+              item.producto, item.descripcion, item.completado ? "Sí" : "No"
+            ]);
+          });
+          
+          // Boxins
+          day.boxins.forEach(item => {
+            exportData.push([
+              day.id, day.fecha, day.diaSemana, "Boxin",
+              item.producto, item.descripcion, item.completado ? "Sí" : "No"
+            ]);
+          });
+        });
+        
+        // Crear libro y hoja
+        const ws = XLSX.utils.aoa_to_sheet(exportData);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Contenido Marketing");
+        
+        // Generar el archivo y descargarlo
+        const fileName = `Grilla_Contenido_${new Date().toISOString().slice(0, 10)}.xlsx`;
+        XLSX.writeFile(wb, fileName);
+        
+        showNotification("Archivo Excel exportado exitosamente");
+      } catch (e) {
+        console.error("Error al exportar a Excel:", e);
+        showNotification("Error al exportar a Excel");
+      }
+    }
+    
+    // Inicializar la aplicación
+    function init() {
+      // Intentar cargar datos guardados
+      const loadedData = loadFromLocalStorage();
+      
+      // Actualizar UI según el estado
+      if (!loadedData) {
+        updateStatusBar("Carga un archivo Excel y configura la fecha inicial para comenzar");
+      }
+    }
+    
+    // Iniciar la aplicación cuando el DOM esté listo
+    document.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>
